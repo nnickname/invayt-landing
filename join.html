@@ -68,9 +68,34 @@
   <div class="card">
     <div class="logo">Invayt</div>
     <h1>Abrí este link desde tu celular para unirte al equipo</h1>
-    <a class="btn btn-primary" href="TU_LINK_APP_STORE">Descargar en App Store</a>
+    <a id="open-app" class="btn btn-primary" href="invayt://">Abrir en la app</a>
+    <a class="btn btn-outline" href="TU_LINK_APP_STORE">Descargar en App Store</a>
     <a class="btn btn-outline" href="TU_LINK_GOOGLE_PLAY">Descargar en Google Play</a>
-    <p class="hint">¿Ya tenés la app instalada? Tocá el link de invitación de nuevo desde WhatsApp.</p>
+    <p class="hint">Si no tenés la app instalada, descargala arriba y después volvé a tocar el link de invitación desde WhatsApp.</p>
   </div>
+  <script>
+    (function () {
+      // El rewrite de Vercel ("/join/:token" -> "/join.html") no cambia la
+      // URL visible en el navegador, así que el token sigue viniendo en
+      // location.pathname (ej: /join/abc123). Lo extraemos para armar el
+      // deep link por esquema propio ("invayt://join/:token"), que abre la
+      // app directo si está instalada, sin depender de que Universal
+      // Links / App Links (apple-app-site-association / assetlinks.json)
+      // estén verificados por el sistema operativo.
+      var match = window.location.pathname.match(/\/join\/([^/?#]+)/);
+      var token = match ? decodeURIComponent(match[1]) : '';
+      var deepLink = token ? 'invayt://join/' + encodeURIComponent(token) : 'invayt://';
+
+      var openBtn = document.getElementById('open-app');
+      openBtn.setAttribute('href', deepLink);
+
+      // Intento automático al cargar la página: si la app está instalada,
+      // esto la abre sin que el usuario tenga que tocar nada. Si no está
+      // instalada, el navegador se queda en esta página y el usuario puede
+      // usar el botón "Abrir en la app" (requiere gesto en algunos
+      // navegadores) o los botones de descarga.
+      window.location.replace(deepLink);
+    })();
+  </script>
 </body>
 </html>
