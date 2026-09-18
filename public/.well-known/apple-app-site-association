@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "MZ2C9J5A7D.com.invayt.app",
+        "paths": ["/join/*"]
+      }
+    ]
+  }
+}
