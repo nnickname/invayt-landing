@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Invayt — Unite al equipo</title>
+<meta name="description" content="Abrí este link desde tu celular para unirte al equipo en Invayt." />
+<meta name="theme-color" content="#0b3d2e" />
+<meta name="robots" content="noindex" />
+<style>
+  :root{
+    --green-900:#0b3d2e;
+    --green-700:#15613f;
+    --green-100:#e6f3ea;
+    --cream:#faf8f3;
+    --ink:#12201a;
+    --muted:#5c6b63;
+    --border:#e3e7e3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    max-width:420px;
+    width:100%;
+    text-align:center;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:40px 28px;
+    box-shadow:0 20px 50px -25px rgba(11,61,46,.25);
+  }
+  .logo{font-weight:800;font-size:20px;color:var(--green-900);margin-bottom:24px;letter-spacing:-.02em;}
+  h1{
+    font-size:20px;
+    font-weight:700;
+    color:var(--green-900);
+    margin-bottom:28px;
+    line-height:1.35;
+  }
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 22px;border-radius:999px;font-weight:600;font-size:15px;
+    border:none;cursor:pointer;text-decoration:none;
+    margin-bottom:14px;
+  }
+  .btn-primary{background:var(--green-900);color:#fff;}
+  .btn-primary:hover{background:var(--green-700);}
+  .btn-outline{background:transparent;color:var(--green-900);border:1.5px solid var(--green-900);}
+  .btn-outline:hover{background:var(--green-100);}
+  .hint{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:20px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Invayt</div>
+    <h1>Abrí este link desde tu celular para unirte al equipo</h1>
+    <a class="btn btn-primary" href="TU_LINK_APP_STORE">Descargar en App Store</a>
+    <a class="btn btn-outline" href="TU_LINK_GOOGLE_PLAY">Descargar en Google Play</a>
+    <p class="hint">¿Ya tenés la app instalada? Tocá el link de invitación de nuevo desde WhatsApp.</p>
+  </div>
+</body>
+</html>

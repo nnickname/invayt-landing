@@ -1,0 +1,15 @@
+{
+  "name": "invayt-landing",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Landing de Invayt (invayt.com) — deploy estático con Vite en Vercel.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
