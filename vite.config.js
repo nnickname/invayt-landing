@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         join: resolve(__dirname, 'join.html'),
+        pay: resolve(__dirname, 'pay.html'),
       },
     },
   },

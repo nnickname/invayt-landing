@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/pay/:matchId*",
-      "destination": "/index.html"
+      "destination": "/pay.html"
     },
     {
       "source": "/join/:token",
