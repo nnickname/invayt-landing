@@ -2,7 +2,7 @@
 
 import { Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
+import Logo from '../public/curved-square-logo.png'
 const nav = [
   { label: 'Cómo funciona', href: '#como-funciona' },
   { label: 'Beneficios', href: '#beneficios' },
@@ -15,9 +15,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <a href="#" className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Wallet className="size-4" />
-          </span>
+          <img width='40px' src={Logo.src} />
           <span className="text-lg font-semibold tracking-tight text-foreground">
             Invayt
           </span>

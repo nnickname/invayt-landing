@@ -1,16 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/pay/:matchId*",
-      "destination": "/pay.html"
-    },
-    {
-      "source": "/join/:token",
-      "destination": "/join.html"
-    }
-  ],
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",
