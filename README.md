@@ -9,6 +9,7 @@ Landing de Invayt construida con Next.js y publicada en Vercel.
   `invayt://join/{token}` e intenta abrir la aplicación automáticamente.
 - `/pay/:matchId` muestra el identificador del partido y arma el deep link
   `invayt://pay/{matchId}` para abrir la aplicación.
+- `/terminos-y-condiciones` muestra los términos y condiciones de uso de Invayt.
 
 Las rutas `join` y `pay` son rutas dinámicas nativas de Next.js; el parámetro
 permanece en la URL del navegador y no depende de páginas HTML separadas.

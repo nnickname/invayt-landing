@@ -1,4 +1,5 @@
 import { Wallet } from 'lucide-react'
+import Link from 'next/link'
 
 export function SiteFooter() {
   return (
@@ -17,9 +18,12 @@ export function SiteFooter() {
           Hecho para clubes de rugby que quieren cobrar sin perseguir a nadie.
         </p>
 
-        <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Invayt
-        </p>
+        <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground sm:items-end">
+          <Link href="/terminos-y-condiciones" className="transition-colors hover:text-foreground">
+            Términos y condiciones
+          </Link>
+          <p>© {new Date().getFullYear()} Invayt</p>
+        </div>
       </div>
     </footer>
   )
