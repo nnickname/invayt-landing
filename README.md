@@ -5,8 +5,8 @@ Landing de Invayt construida con Next.js y publicada en Vercel.
 ## Rutas públicas
 
 - `/` muestra la landing principal.
-- `/join/:token` muestra un fallback web, arma el deep link
-  `invayt://join/{token}` e intenta abrir la aplicación automáticamente.
+- `/join/:slug` resuelve el club, permite seleccionar un jugador no verificado,
+  completar sus datos y unirse desde la web sin instalar la aplicación.
 - `/pay/:matchId` muestra el identificador del partido y arma el deep link
   `invayt://pay/{matchId}` para abrir la aplicación.
 - `/terminos-y-condiciones` muestra los términos y condiciones de uso de Invayt.
