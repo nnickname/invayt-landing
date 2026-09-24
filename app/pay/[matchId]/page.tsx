@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { AppLinkFallback } from '@/components/app-link-fallback'
+import { PaymentFlow } from '@/components/payment-flow'
 
 export const metadata: Metadata = {
   title: 'Invayt — Link de pago',
-  description: 'Abrí este link desde tu celular para ver el partido y continuar en Invayt.',
+  description: 'Consultá el partido y enviá tu comprobante de pago desde Invayt.',
   robots: { index: false, follow: false },
 }
 
@@ -14,5 +14,5 @@ export default async function PayPage({
 }) {
   const { matchId } = await params
 
-  return <AppLinkFallback type="pay" value={matchId} />
+  return <PaymentFlow matchId={matchId} />
 }
