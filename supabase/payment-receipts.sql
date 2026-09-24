@@ -20,3 +20,11 @@ create table if not exists public.payment_receipts (
 );
 
 alter table public.payment_receipts enable row level security;
+
+-- Datos que se muestran en el checkout web de transferencia.
+alter table public.clubs
+  add column if not exists transfer_cbu text,
+  add column if not exists transfer_alias text;
+
+comment on column public.clubs.transfer_cbu is 'CBU que el club publica para recibir transferencias.';
+comment on column public.clubs.transfer_alias is 'Alias bancario que el club publica para recibir transferencias.';

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { CheckCircle2, ChevronRight, FileUp, Loader2, ShieldCheck, UserRound } from 'lucide-react'
+import { Check, CheckCircle2, ChevronRight, Copy, FileUp, Loader2, ShieldCheck, UserRound, WalletCards } from 'lucide-react'
 
 type Player = {
   id: string
@@ -18,6 +18,10 @@ type PaymentContext = {
     amountPerPlayer: number
   }
   clubName: string
+  transfer: {
+    cbu: string | null
+    alias: string | null
+  }
   players: Player[]
 }
 
@@ -31,6 +35,7 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [copiedValue, setCopiedValue] = useState<'cbu' | 'alias' | null>(null)
 
   useEffect(() => {
     let active = true
@@ -70,6 +75,16 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
     setFile(null)
     setError('')
     setSuccess(false)
+  }
+
+  async function copyTransferValue(value: string, type: 'cbu' | 'alias') {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopiedValue(type)
+      window.setTimeout(() => setCopiedValue((current) => current === type ? null : current), 1800)
+    } catch {
+      setError('No pudimos copiar el dato. Seleccionalo y copialo manualmente.')
+    }
   }
 
   async function verifyPhone(event: React.FormEvent<HTMLFormElement>) {
@@ -136,6 +151,8 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
           <strong className="font-semibold text-foreground">{formatAmount(payment.match.amountPerPlayer)}</strong>
         </div>
       </div>
+
+      <TransferDetails transfer={payment.transfer} onCopy={copyTransferValue} copiedValue={copiedValue} />
 
       <section>
         <div className="flex items-center gap-2">
@@ -204,6 +221,54 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
       {success && <div className="mt-7 rounded-2xl border border-primary/20 bg-accent p-5 text-center"><CheckCircle2 className="mx-auto size-8 text-primary" /><h2 className="mt-3 font-semibold text-foreground">Comprobante enviado</h2><p className="mt-1 text-sm leading-relaxed text-muted-foreground">El club recibió tu comprobante y lo revisará.</p></div>}
       {error && <p className="mt-5 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive" role="alert">{error}</p>}
     </PaymentShell>
+  )
+}
+
+function TransferDetails({
+  transfer,
+  onCopy,
+  copiedValue,
+}: {
+  transfer: PaymentContext['transfer']
+  onCopy: (value: string, type: 'cbu' | 'alias') => void
+  copiedValue: 'cbu' | 'alias' | null
+}) {
+  const hasTransferDetails = transfer.cbu || transfer.alias
+
+  return (
+    <section className="mb-7 rounded-2xl border border-border bg-muted/30 p-5">
+      <div className="flex items-center gap-2">
+        <WalletCards className="size-5 text-primary" />
+        <div>
+          <h2 className="font-semibold text-foreground">Datos para transferir</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">Transferí el importe indicado y luego adjuntá el comprobante.</p>
+        </div>
+      </div>
+
+      {hasTransferDetails ? (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {transfer.cbu && <TransferValue label="CBU" value={transfer.cbu} copied={copiedValue === 'cbu'} onCopy={() => onCopy(transfer.cbu!, 'cbu')} />}
+          {transfer.alias && <TransferValue label="Alias" value={transfer.alias} copied={copiedValue === 'alias'} onCopy={() => onCopy(transfer.alias!, 'alias')} />}
+        </div>
+      ) : (
+        <p className="mt-4 rounded-lg bg-background px-3 py-2.5 text-sm text-muted-foreground">El club todavía no configuró sus datos de transferencia.</p>
+      )}
+    </section>
+  )
+}
+
+function TransferValue({ label, value, copied, onCopy }: { label: string; value: string; copied: boolean; onCopy: () => void }) {
+  return (
+    <div className="rounded-xl border border-border bg-background p-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        <span className="break-all font-mono text-sm text-foreground">{value}</span>
+        <button type="button" onClick={onCopy} className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-primary transition-colors hover:bg-accent" aria-label={`Copiar ${label}`} title={`Copiar ${label}`}>
+          {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+        </button>
+      </div>
+      {copied && <p className="mt-1 text-xs text-primary">Copiado</p>}
+    </div>
   )
 }
 

@@ -9,6 +9,8 @@ type SupabaseMatch = {
 type SupabaseClub = {
   id: string
   name: string
+  transfer_cbu: string | null
+  transfer_alias: string | null
 }
 
 type SupabasePlayer = {
@@ -33,6 +35,10 @@ export type PaymentContext = {
     amountPerPlayer: number
   }
   clubName: string
+  transfer: {
+    cbu: string | null
+    alias: string | null
+  }
   players: PaymentPlayer[]
 }
 
@@ -153,7 +159,7 @@ export async function resolvePayment(matchIdInput: string): Promise<PaymentConte
   const match = await findMatch(matchIdInput)
   const [clubs, players] = await Promise.all([
     supabaseRequest<SupabaseClub[]>(
-      `clubs?select=id,name&id=eq.${encodeURIComponent(match.club_id)}&limit=1`,
+      `clubs?select=id,name,transfer_cbu,transfer_alias&id=eq.${encodeURIComponent(match.club_id)}&limit=1`,
     ),
     supabaseRequest<SupabasePlayer[]>(
       `players?select=id,name,last_name,phone&club_id=eq.${encodeURIComponent(match.club_id)}&order=name.asc,last_name.asc`,
@@ -172,6 +178,10 @@ export async function resolvePayment(matchIdInput: string): Promise<PaymentConte
       amountPerPlayer: Number(match.amount_per_player || 0),
     },
     clubName: clubs[0].name,
+    transfer: {
+      cbu: clean(clubs[0].transfer_cbu) || null,
+      alias: clean(clubs[0].transfer_alias) || null,
+    },
     players: players.map((player) => ({
       id: player.id,
       name: clean(player.name),
