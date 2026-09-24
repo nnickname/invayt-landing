@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.'
     const status = message.includes('no existe') || message.includes('no pertenece') || message.includes('ya está')
       ? 400
-      : message.includes('configuration')
+      : message.includes('configuration') || message.includes('configuración')
         ? 503
         : 500
 

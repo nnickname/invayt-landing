@@ -54,7 +54,28 @@ function getSupabaseConfig() {
     throw new Error('Supabase server configuration is missing.')
   }
 
+  // A service role key bypasses RLS. If an anon key is accidentally copied
+  // here, Supabase returns an empty array for protected tables, which looks
+  // like a missing club. Fail with a useful configuration error instead.
+  const tokenPayload = decodeJwtPayload(serviceRoleKey)
+  if (tokenPayload?.role === 'anon') {
+    throw new Error('Supabase server configuration is invalid: SUPABASE_SERVICE_ROLE_KEY is an anon key.')
+  }
+
   return { url: url.replace(/\/$/, ''), serviceRoleKey }
+}
+
+function decodeJwtPayload(token: string): { role?: string } | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+    return JSON.parse(Buffer.from(padded, 'base64').toString('utf8')) as { role?: string }
+  } catch {
+    return null
+  }
 }
 
 async function supabaseRequest<T>(
