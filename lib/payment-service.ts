@@ -20,11 +20,9 @@ type SupabasePlayer = {
   phone: string | null
 }
 
-type PaymentReceiptStatus = 'pending' | 'approved' | 'rejected'
-
 type SupabasePaymentReceipt = {
   player_id: string
-  status: PaymentReceiptStatus
+  storage_path: string | null
 }
 
 export type PaymentPlayer = {
@@ -32,7 +30,7 @@ export type PaymentPlayer = {
   name: string
   lastName: string
   isVerified: boolean
-  receiptStatus: PaymentReceiptStatus | null
+  hasReceipt: boolean
 }
 
 export type PaymentContext = {
@@ -163,32 +161,32 @@ async function findPlayer(match: SupabaseMatch, playerIdInput: string) {
   return players[0]
 }
 
-async function findPaymentReceiptStatuses(matchId: string) {
+async function findPaymentReceipts(matchId: string) {
   const receipts = await supabaseRequest<SupabasePaymentReceipt[]>(
-    `payment_receipts?select=player_id,status&match_id=eq.${encodeURIComponent(matchId)}`,
+    `payment_receipts?select=player_id,storage_path&match_id=eq.${encodeURIComponent(matchId)}`,
   )
 
-  return new Map(receipts.map((receipt) => [receipt.player_id, receipt.status]))
+  return new Map(receipts.map((receipt) => [receipt.player_id, Boolean(clean(receipt.storage_path))]))
 }
 
-async function findPaymentReceiptStatus(matchId: string, playerId: string) {
+async function hasPaymentReceipt(matchId: string, playerId: string) {
   const receipts = await supabaseRequest<SupabasePaymentReceipt[]>(
-    `payment_receipts?select=status&match_id=eq.${encodeURIComponent(matchId)}&player_id=eq.${encodeURIComponent(playerId)}&limit=1`,
+    `payment_receipts?select=storage_path&match_id=eq.${encodeURIComponent(matchId)}&player_id=eq.${encodeURIComponent(playerId)}&limit=1`,
   )
 
-  return receipts[0]?.status || null
+  return Boolean(clean(receipts[0]?.storage_path))
 }
 
 export async function resolvePayment(matchIdInput: string): Promise<PaymentContext> {
   const match = await findMatch(matchIdInput)
-  const [clubs, players, receiptStatuses] = await Promise.all([
+  const [clubs, players, receipts] = await Promise.all([
     supabaseRequest<SupabaseClub[]>(
       `clubs?select=id,name,transfer_cbu,transfer_alias&id=eq.${encodeURIComponent(match.club_id)}&limit=1`,
     ),
     supabaseRequest<SupabasePlayer[]>(
       `players?select=id,name,last_name,phone&club_id=eq.${encodeURIComponent(match.club_id)}&order=name.asc,last_name.asc`,
     ),
-    findPaymentReceiptStatuses(match.id),
+    findPaymentReceipts(match.id),
   ])
 
   if (!clubs[0]) {
@@ -212,7 +210,7 @@ export async function resolvePayment(matchIdInput: string): Promise<PaymentConte
       name: clean(player.name),
       lastName: clean(player.last_name),
       isVerified: Boolean(clean(player.phone)),
-      receiptStatus: receiptStatuses.get(player.id) || null,
+      hasReceipt: receipts.get(player.id) || false,
     })),
   }
 }
@@ -227,8 +225,7 @@ export async function verifyPaymentPlayer(input: {
   validatePhone(phone)
   const player = await findPlayer(match, input.playerId)
 
-  const receiptStatus = await findPaymentReceiptStatus(match.id, player.id)
-  if (receiptStatus === 'pending' || receiptStatus === 'approved') {
+  if (await hasPaymentReceipt(match.id, player.id)) {
     throw new Error('Este jugador ya tiene un pago registrado y no puede pagar nuevamente.')
   }
 
@@ -256,8 +253,7 @@ export async function uploadPaymentReceipt(input: {
   const match = await findMatch(input.matchId)
   const player = await findPlayer(match, input.playerId)
 
-  const receiptStatus = await findPaymentReceiptStatus(match.id, player.id)
-  if (receiptStatus === 'pending' || receiptStatus === 'approved') {
+  if (await hasPaymentReceipt(match.id, player.id)) {
     throw new Error('Este jugador ya tiene un pago registrado y no puede pagar nuevamente.')
   }
 
