@@ -8,6 +8,7 @@ type Player = {
   name: string
   lastName: string
   isVerified: boolean
+  receiptStatus: 'pending' | 'approved' | 'rejected' | null
 }
 
 type PaymentContext = {
@@ -89,7 +90,7 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
 
   async function verifyPhone(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selectedPlayer || verifying) return
+    if (!selectedPlayer || isPaymentLocked(selectedPlayer.receiptStatus) || verifying) return
 
     setVerifying(true)
     setError('')
@@ -116,7 +117,7 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
 
   async function uploadReceipt(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selectedPlayer || !isVerified || !file || uploading) return
+    if (!selectedPlayer || isPaymentLocked(selectedPlayer.receiptStatus) || !isVerified || !file || uploading) return
 
     setUploading(true)
     setError('')
@@ -129,6 +130,10 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
       const response = await fetch('/api/payment', { method: 'POST', body: formData })
       const data = (await response.json()) as { error?: string }
       if (!response.ok) throw new Error(data.error || 'No pudimos subir el comprobante.')
+      setPayment((current) => current ? {
+        ...current,
+        players: current.players.map((player) => player.id === selectedPlayer.id ? { ...player, receiptStatus: 'pending' } : player),
+      } : current)
       setSuccess(true)
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'No pudimos subir el comprobante.')
@@ -171,7 +176,7 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
               <span>
                 <span className="block text-sm font-medium text-foreground">{player.name} {player.lastName}</span>
                 <span className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                  {player.isVerified && <><ShieldCheck className="size-3.5 text-primary" /> Teléfono verificado</>}
+                  {player.receiptStatus === 'approved' ? <><CheckCircle2 className="size-3.5 text-primary" /> Pago aprobado</> : player.receiptStatus === 'pending' ? <><CheckCircle2 className="size-3.5 text-primary" /> Pago pendiente de revisión</> : player.receiptStatus === 'rejected' ? <><FileUp className="size-3.5 text-destructive" /> Comprobante rechazado</> : player.isVerified && <><ShieldCheck className="size-3.5 text-primary" /> Teléfono verificado</>}
                 </span>
               </span>
               {selectedPlayerId === player.id && <CheckCircle2 className="size-5 text-primary" />}
@@ -180,7 +185,34 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
         </div>
       </section>
 
-      {selectedPlayer && !isVerified && (
+      {selectedPlayer?.receiptStatus === 'approved' && (
+        <div className="mt-7 flex items-start gap-3 rounded-2xl border border-primary/20 bg-accent/50 p-5">
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
+          <div>
+            <h2 className="font-semibold text-foreground">Pago aprobado</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Este jugador ya tiene un pago aprobado para este partido. Podés consultar sus datos, pero no es posible pagar nuevamente.</p>
+          </div>
+        </div>
+      )}
+
+      {selectedPlayer?.receiptStatus === 'pending' && (
+        <div className="mt-7 flex items-start gap-3 rounded-2xl border border-primary/20 bg-accent/50 p-5">
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
+          <div>
+            <h2 className="font-semibold text-foreground">Comprobante enviado</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">El club todavía está revisando este comprobante. No es posible enviar otro para este jugador.</p>
+          </div>
+        </div>
+      )}
+
+      {selectedPlayer?.receiptStatus === 'rejected' && (
+        <div className="mt-7 rounded-2xl border border-destructive/20 bg-destructive/5 p-5">
+          <h2 className="font-semibold text-foreground">Comprobante rechazado</h2>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">El comprobante anterior fue rechazado. Podés enviar uno nuevo.</p>
+        </div>
+      )}
+
+      {selectedPlayer && !isPaymentLocked(selectedPlayer.receiptStatus) && !isVerified && (
         <form onSubmit={verifyPhone} className="mt-7 rounded-2xl border border-primary/20 bg-accent/50 p-5">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />
@@ -199,7 +231,7 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
         </form>
       )}
 
-      {selectedPlayer && isVerified && !success && (
+      {selectedPlayer && !isPaymentLocked(selectedPlayer.receiptStatus) && isVerified && !success && (
         <form onSubmit={uploadReceipt} className="mt-7 border-t border-border pt-7">
           <div className="flex items-center gap-2">
             <FileUp className="size-5 text-primary" />
@@ -222,6 +254,10 @@ export function PaymentFlow({ matchId }: { matchId: string }) {
       {error && <p className="mt-5 rounded-lg bg-destructive/10 px-3 py-2.5 text-sm text-destructive" role="alert">{error}</p>}
     </PaymentShell>
   )
+}
+
+function isPaymentLocked(status: Player['receiptStatus']) {
+  return status === 'pending' || status === 'approved'
 }
 
 function TransferDetails({

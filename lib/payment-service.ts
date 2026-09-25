@@ -20,11 +20,19 @@ type SupabasePlayer = {
   phone: string | null
 }
 
+type PaymentReceiptStatus = 'pending' | 'approved' | 'rejected'
+
+type SupabasePaymentReceipt = {
+  player_id: string
+  status: PaymentReceiptStatus
+}
+
 export type PaymentPlayer = {
   id: string
   name: string
   lastName: string
   isVerified: boolean
+  receiptStatus: PaymentReceiptStatus | null
 }
 
 export type PaymentContext = {
@@ -155,15 +163,32 @@ async function findPlayer(match: SupabaseMatch, playerIdInput: string) {
   return players[0]
 }
 
+async function findPaymentReceiptStatuses(matchId: string) {
+  const receipts = await supabaseRequest<SupabasePaymentReceipt[]>(
+    `payment_receipts?select=player_id,status&match_id=eq.${encodeURIComponent(matchId)}`,
+  )
+
+  return new Map(receipts.map((receipt) => [receipt.player_id, receipt.status]))
+}
+
+async function findPaymentReceiptStatus(matchId: string, playerId: string) {
+  const receipts = await supabaseRequest<SupabasePaymentReceipt[]>(
+    `payment_receipts?select=status&match_id=eq.${encodeURIComponent(matchId)}&player_id=eq.${encodeURIComponent(playerId)}&limit=1`,
+  )
+
+  return receipts[0]?.status || null
+}
+
 export async function resolvePayment(matchIdInput: string): Promise<PaymentContext> {
   const match = await findMatch(matchIdInput)
-  const [clubs, players] = await Promise.all([
+  const [clubs, players, receiptStatuses] = await Promise.all([
     supabaseRequest<SupabaseClub[]>(
       `clubs?select=id,name,transfer_cbu,transfer_alias&id=eq.${encodeURIComponent(match.club_id)}&limit=1`,
     ),
     supabaseRequest<SupabasePlayer[]>(
       `players?select=id,name,last_name,phone&club_id=eq.${encodeURIComponent(match.club_id)}&order=name.asc,last_name.asc`,
     ),
+    findPaymentReceiptStatuses(match.id),
   ])
 
   if (!clubs[0]) {
@@ -187,6 +212,7 @@ export async function resolvePayment(matchIdInput: string): Promise<PaymentConte
       name: clean(player.name),
       lastName: clean(player.last_name),
       isVerified: Boolean(clean(player.phone)),
+      receiptStatus: receiptStatuses.get(player.id) || null,
     })),
   }
 }
@@ -200,6 +226,11 @@ export async function verifyPaymentPlayer(input: {
   const phone = clean(input.phone)
   validatePhone(phone)
   const player = await findPlayer(match, input.playerId)
+
+  const receiptStatus = await findPaymentReceiptStatus(match.id, player.id)
+  if (receiptStatus === 'pending' || receiptStatus === 'approved') {
+    throw new Error('Este jugador ya tiene un pago registrado y no puede pagar nuevamente.')
+  }
 
   if (clean(player.phone)) {
     return { isVerified: true }
@@ -224,6 +255,11 @@ export async function uploadPaymentReceipt(input: {
 }) {
   const match = await findMatch(input.matchId)
   const player = await findPlayer(match, input.playerId)
+
+  const receiptStatus = await findPaymentReceiptStatus(match.id, player.id)
+  if (receiptStatus === 'pending' || receiptStatus === 'approved') {
+    throw new Error('Este jugador ya tiene un pago registrado y no puede pagar nuevamente.')
+  }
 
   if (!clean(player.phone)) {
     throw new Error('Verificá tu teléfono antes de subir el comprobante.')

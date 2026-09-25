@@ -49,11 +49,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'La acción solicitada no es válida.' }, { status: 400 })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Ocurrió un error inesperado.'
-    const status = message.includes('no existe') || message.includes('no pertenece') || message.includes('válido') || message.includes('Verificá') || message.includes('Subí') || message.includes('Seleccioná')
-      ? 400
-      : message.includes('configuration') || message.includes('configuración')
-        ? 503
-        : 500
+    const status = message.includes('ya tiene un pago')
+      ? 409
+      : message.includes('no existe') || message.includes('no pertenece') || message.includes('válido') || message.includes('Verificá') || message.includes('Subí') || message.includes('Seleccioná')
+        ? 400
+        : message.includes('configuration') || message.includes('configuración')
+          ? 503
+          : 500
 
     return NextResponse.json({ error: message }, { status })
   }
