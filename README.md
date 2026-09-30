@@ -7,24 +7,18 @@ Landing de Invayt construida con Next.js y publicada en Vercel.
 - `/` muestra la landing principal.
 - `/join/:slug` resuelve el club, permite seleccionar un jugador no verificado,
   completar sus datos y unirse desde la web sin instalar la aplicación.
-- `/pay/:matchId` muestra el identificador del partido y arma el deep link
-  `invayt://pay/{matchId}` para abrir la aplicación.
+- `/pay/:matchId` permite consultar el partido y completar el flujo de pago
+  desde la web.
 - `/terminos-y-condiciones` muestra los términos y condiciones de uso de Invayt.
 
 Las rutas `join` y `pay` son rutas dinámicas nativas de Next.js; el parámetro
 permanece en la URL del navegador y no depende de páginas HTML separadas.
 
-## Links de iOS y Android
+## Enlaces web de unión y pago
 
-Los archivos de asociación para Universal Links y Android App Links se sirven
-desde:
-
-- `/.well-known/apple-app-site-association`
-- `/.well-known/assetlinks.json`
-
-El `appID` de iOS y el `package_name` de Android ya están configurados. Hay que
-reemplazar `<TU_SHA256_FINGERPRINT_AQUI>` por la huella SHA-256 del certificado
-de firma de producción de Android; no es posible deducirla desde la landing.
+Las rutas `/join/:slug` y `/pay/:matchId` deben abrirse y continuar en el
+navegador. La landing no publica archivos AASA ni Android Asset Links para evitar
+que iOS o Android asocien estas URLs con la app y se salten el flujo web.
 
 Las URLs de las tiendas se configuran con las variables de entorno de
 `.env.example`:
@@ -63,5 +57,6 @@ La respuesta debe ser exitosa y la URL solicitada debe permanecer sin cambios.
 ## Relación con la app Expo
 
 La configuración de linking de la app Expo está en el repositorio `invayt2.0`.
-Esta landing funciona como la página web visual pública para que los links de
-invitación y pago tengan contenido aun cuando la aplicación no esté instalada.
+Esta landing procesa los links de invitación y pago desde la web, tanto si la app
+está instalada como si no. La configuración nativa de la app debe dejar de
+reclamar estas rutas HTTPS si se vuelven a habilitar asociaciones en el futuro.

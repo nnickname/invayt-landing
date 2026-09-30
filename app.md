@@ -54,26 +54,15 @@ La landing debe utilizar únicamente la `anon key` pública de Supabase si neces
 
 ### 3.1. Cuando el enlace se abre en un dispositivo con la app instalada
 
-La configuración nativa ya declara:
-
-- iOS Universal Links para `invayt.com`.
-- Android App Links para `/join/*` y `/pay/*`.
-- Deep links por esquema `invayt://`.
-
-Por lo tanto, en una build nativa correctamente firmada, el sistema operativo puede abrir directamente la app al acceder a:
-
-- `https://invayt.com/join/{slug}` → pantalla `Invite`.
-- `https://invayt.com/pay/{matchId}` → pantalla `MatchPaymentInvite`.
-
-La landing debe seguir siendo la experiencia de fallback cuando:
-
-- La app no está instalada.
-- El navegador no delega el enlace a la app.
-- El usuario está en desktop.
+Los enlaces HTTPS `https://invayt.com/join/{slug}` y
+`https://invayt.com/pay/{matchId}` deben abrir la landing y mantener al usuario
+en el flujo web, incluso si la app está instalada. La configuración nativa no
+debe reclamar esas rutas. Los deep links explícitos por esquema `invayt://`
+pueden seguir utilizándose cuando la navegación a la app sea intencional.
 
 No conviene redirigir automáticamente a la descarga de la app: la unión y, cuando esté terminado, el pago deben poder completarse desde la web.
 
-### 3.2. Cuando se abre directamente en la web
+### 3.2. Flujo web de unión y pago
 
 La landing debe:
 
@@ -415,27 +404,20 @@ La respuesta a `OPTIONS` también debe incluir los headers CORS correctos. Sin e
 - Registrar logs sin almacenar datos de tarjeta ni secretos.
 - Definir una política para altas duplicadas: actualmente dos envíos pueden crear dos filas de jugador porque no hay una restricción visible de unicidad por club/email.
 
-## 10. Deep links, asociación móvil y fallback web
+## 10. Deep links y flujo web
 
-La app tiene configurado:
+La landing mantiene `/join/*` y `/pay/*` como rutas web y no debe asociarlas con
+la app. No se deben publicar archivos de asociación móvil para este dominio:
 
-- iOS: `associatedDomains: ["applinks:invayt.com"]`.
-- Android: intent filters para `https://invayt.com/join/*` y `https://invayt.com/pay/*`.
-- React Navigation: prefixes `invayt://` y `https://invayt.com`.
+- `/.well-known/apple-app-site-association` (Universal Links de iOS).
+- `/.well-known/assetlinks.json` (Android App Links).
 
-Para que esto funcione en producción, el dominio debe servir:
+Si la app conserva configuración nativa para el dominio, hay que evitar que
+reclame `/join/*` y `/pay/*`; el usuario debe permanecer en el navegador y
+completar allí el flujo.
 
-```text
-https://invayt.com/.well-known/apple-app-site-association
-https://invayt.com/.well-known/assetlinks.json
-```
-
-Antes de publicar hay que reemplazar los valores de ejemplo o pendientes:
-
-- Team ID real de Apple en `apple-app-site-association`.
-- Huella SHA-256 real del certificado de firma Android en `assetlinks.json`.
-
-La app utiliza Expo SDK 57. Los Universal Links y App Links son configuración nativa; no se pueden validar correctamente en Expo Go. Deben probarse con una development build o una build de producción instalada en un dispositivo.
+Los deep links explícitos por esquema `invayt://` son independientes y pueden
+seguir existiendo para navegación iniciada intencionalmente desde la app.
 
 ## 11. Autenticación web
 
@@ -477,10 +459,9 @@ Si la landing incorpora login, registro o recuperación de contraseña, hay que 
 ### App links
 
 - [ ] Mantener disponibles `/join/*` y `/pay/*` en el hosting de la landing.
-- [ ] Publicar AASA y Asset Links válidos.
-- [ ] Completar Team ID de Apple y fingerprint Android.
-- [ ] Probar con builds nativas, no solo Expo Go.
-- [ ] Verificar que en desktop y sin app instalada la landing procesa el flujo web.
+- [x] No publicar AASA ni Asset Links que asocien estas rutas con la app.
+- [ ] Verificar en dispositivos que los enlaces HTTPS mantienen el flujo en el navegador.
+- [ ] Verificar que en desktop y con la app instalada la landing procesa el flujo web.
 
 ## 13. Criterios de aceptación del flujo completo
 
