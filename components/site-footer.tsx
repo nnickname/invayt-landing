@@ -22,6 +22,9 @@ export function SiteFooter() {
           <Link href="/terminos-y-condiciones" className="transition-colors hover:text-foreground">
             Términos y condiciones
           </Link>
+          <Link href="/eliminar-cuenta" className="transition-colors hover:text-foreground">
+            Eliminar cuenta
+          </Link>
           <p>© {new Date().getFullYear()} Invayt</p>
         </div>
       </div>
